@@ -1,0 +1,1161 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Drone Controller</title>
+
+	<script src="{% static 'js/jquery.min.js' %}"></script>
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="https://code.highcharts.com/highcharts-3d.js"></script>
+	<script src="https://code.highcharts.com/modules/exporting.js"></script>
+	<script src="https://code.highcharts.com/modules/export-data.js"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
+	<style type="text/css">
+
+		button{
+			background:#89a2a0;
+			border:0;
+			color:#fff;
+			padding:10px;
+			font-size:20px;
+			width:95%;
+			margin:12px auto;
+			display:block;
+			cursor:pointer;
+			margin-top:25px;
+		}
+		button:hover{
+			background:#5d6d6c;
+		}
+
+
+		.inputGroup {
+			background-color: #fff;
+			display: block;
+			margin: 10px 0;
+			position: relative;
+		}
+		.inputGroup label {
+			padding: 12px 30px;
+			width: 100%;
+			display: block;
+			text-align: left;
+			color: #3C454C;
+			cursor: pointer;
+			position: relative;
+			z-index: 2;
+			transition: color 200ms ease-in;
+			overflow: hidden;
+		}
+		.inputGroup label:before {
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			content: '';
+			background-color: #408bcc;
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			-webkit-transform: translate(-50%, -50%) scale3d(1, 1, 1);
+			transform: translate(-50%, -50%) scale3d(1, 1, 1);
+			transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+			opacity: 0;
+			z-index: -1;
+		}
+		.inputGroup label:after {
+			width: 32px;
+			height: 32px;
+			content: '';
+			border: 2px solid #D1D7DC;
+			background-color: #fff;
+			background-image: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.414 11L4 12.414l5.414 5.414L20.828 6.414 19.414 5l-10 10z' fill='%23fff' fill-rule='nonzero'/%3E%3C/svg%3E ");
+			background-repeat: no-repeat;
+			background-position: 2px 3px;
+			border-radius: 50%;
+			z-index: 2;
+			position: absolute;
+			right: 30px;
+			top: 50%;
+			-webkit-transform: translateY(-50%);
+			transform: translateY(-50%);
+			cursor: pointer;
+			transition: all 200ms ease-in;
+		}
+		.inputGroup input:checked ~ label {
+			color: #fff;
+		}
+		.inputGroup input:checked ~ label:before {
+			-webkit-transform: translate(-50%, -50%) scale3d(56, 56, 1);
+			transform: translate(-50%, -50%) scale3d(56, 56, 1);
+			opacity: 1;
+		}
+		.inputGroup input:checked ~ label:after {
+			background-color: #54E0C7;
+			border-color: #54E0C7;
+		}
+		.inputGroup input {
+			width: 32px;
+			height: 32px;
+			order: 1;
+			z-index: 2;
+			position: absolute;
+			right: 30px;
+			top: 50%;
+			-webkit-transform: translateY(-50%);
+			transform: translateY(-50%);
+			cursor: pointer;
+			visibility: hidden;
+		}
+
+
+		*,
+		*::before,
+		*::after {
+			box-sizing: inherit;
+		}
+
+
+
+		code {
+			background-color: #9AA3AC;
+			padding: 0 8px;
+		}
+
+
+	</style>
+
+	<style type="text/css">
+		/* The Modal (background) */
+		.modal {
+			display: none; /* Hidden by default */
+			position: fixed; /* Stay in place */
+			z-index: 1; /* Sit on top */
+			left: 0;
+			top: 0;
+			width: 100%; /* Full width */
+			height: 100%; /* Full height */
+			overflow: auto; /* Enable scroll if needed */
+			background-color: rgb(0,0,0); /* Fallback color */
+			background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+			-webkit-animation-name: fadeIn; /* Fade in the background */
+			-webkit-animation-duration: 0.4s;
+			animation-name: fadeIn;
+			animation-duration: 0.4s
+		}
+
+		/* Modal Content */
+		.modal-content {
+			position: fixed;
+			bottom: 0;
+			background-color: #fefefe;
+			width: 100%;
+			-webkit-animation-name: slideIn;
+			-webkit-animation-duration: 0.4s;
+			animation-name: slideIn;
+			animation-duration: 0.4s;
+			box-sizing: border-box;
+
+		}
+
+		/* The Close Button */
+		.close {
+			color: white;
+			float: right;
+			font-size: 28px;
+			font-weight: bold;
+		}
+
+		.close:hover,
+		.close:focus {
+			color: #000;
+			text-decoration: none;
+			cursor: pointer;
+		}
+
+		.modal-header {
+			padding: 2px 16px;
+			background-color: #579069;
+			color: white;
+		}
+
+		.modal-body {padding: 2px 16px;}
+
+		.modal-footer {
+			padding: 2px 16px;
+			background-color: #579069;
+			color: white;
+		}
+
+		/* Add Animation */
+		@-webkit-keyframes slideIn {
+			from {bottom: -300px; opacity: 0} 
+			to {bottom: 0; opacity: 1}
+		}
+
+		@keyframes slideIn {
+			from {bottom: -300px; opacity: 0}
+			to {bottom: 0; opacity: 1}
+		}
+
+		@-webkit-keyframes fadeIn {
+			from {opacity: 0} 
+			to {opacity: 1}
+		}
+
+		@keyframes fadeIn {
+			from {opacity: 0} 
+			to {opacity: 1}
+		}
+
+
+	</style>
+
+
+	<style type="text/css">
+
+		html,
+		body {
+			height: 100%;
+			width: 100%;
+			margin:0;
+		}
+
+		#container {
+			height: 400px; 
+			min-width: 310px; 
+			max-width: 800px;
+			margin: 0 auto;
+		}
+
+		label{
+			font-family: Helvetica;
+		}
+
+		@import url("https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext");
+
+
+		@import url("https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext");
+
+
+		#main-circle {
+			width: 100px;
+			height: 100px;
+			margin: 4% auto;
+			background: linear-gradient(#DF293A, #EF495A);
+			border-radius: 75px;
+			box-shadow: 1px 5px 1px #CE152A;
+			transition: all .15s ease-in;
+		}
+
+
+		#inner-circle {
+			position: relative;
+			color: #FFF;
+			text-align: center;
+			color: rgba(255, 255, 255, 0.85);
+			font-family: "Lato", Verdana, sans-serif;
+			font-size: 15px;
+			padding-top: 30px;
+			width: 75px;
+			height: 45px;
+			border-radius: 60px;
+			background: radial-gradient(#EF495A, #DE2839);
+			box-shadow: 1px 2px 1px rgba(255, 255, 255, 0.15) inset;
+			margin: 0 auto;
+			top: 12.5px;
+		}
+
+		#main-circle:hover {
+			box-shadow: 1px 3px 1px #CE152A;
+			cursor: pointer;
+		}
+
+		fieldset{
+			margin-top: 12px;
+			border: 1px solid #39c;
+			padding: 12px;
+			-moz-border-radius: 8px;
+			border-radius: 8px;
+			margin-bottom: 20px;
+			font-family: Helvetica;
+		}
+
+		legend{
+			font-family: Helvetica;
+			font-size: 20px;
+		}
+
+
+
+
+		ul {
+			display:none;
+			margin-top:-1px;
+			background: rgba(0, 0, 0, 0.78);
+			color: #fefefe;
+			width:300px;
+			position: absolute;
+			top: 70px;
+
+			font-family: Helvetica;
+			font-weight: 300;
+			list-style: none;
+			margin:0;
+			padding:0;
+		}
+
+		li {
+			border-bottom:1px solid rgba(0, 0, 0, 0.1);
+		}
+
+		a, a:visited {
+			text-decoration:none;
+			padding-left:0;
+			color: #fefefe;
+			padding-left:15px;
+			display:block;
+			transition: all .3s ease-in-out;
+			-moz-transition: all .3s ease-in-out;
+			-webkit-transition: all .3s ease-in-out;
+		}
+
+		a:hover {
+			background: rgba(0, 0, 0, 0.9);
+			transition: all .3s ease-in-out;
+			-moz-transition: all .3s ease-in-out;
+			-webkit-transition: all .3s ease-in-out;
+		}
+
+	}
+
+</style>
+
+
+
+
+<style type="text/css">
+
+	/* The Modal (background) */
+	.modalConfig {
+		display: none; /* Hidden by default */
+		position: fixed; /* Stay in place */
+		z-index: 2000; /* Sit on top */
+		left: 0;
+		top: 0;
+		width: 100%; /* Full width */
+		height: 100%; /* Full height */
+		background-color: rgb(0,0,0); /* Fallback color */
+		background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+	}
+
+	/* Modal Content/Box */
+	.modal-contentConfig {
+		background-color: #fff;
+		padding: 20px;
+		border: 1px solid #888;
+		width: 600px; /* Could be more or less, depending on screen size */
+		height: 280px;
+		overflow: auto; /* Enable scroll if needed */
+		margin: auto;
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+
+	}
+
+	/* The Close Button */
+	.closeConfig {
+		color: #9ba3b3;
+		float: right;
+		font-size: 28px;
+		font-weight: bold;
+		margin-top: -9px;
+	}
+
+	.closeConfig:hover,
+	.closeConfig:focus {
+		color: #000;
+		text-decoration: none;
+		cursor: pointer;
+	}
+</style>
+
+
+<script type="text/javascript">
+
+	CHANGE_CONTROLLER = 0;
+	EMERGENCY = 1;
+	REQUEST_CONTROLER_DATA = 2;
+	UPDATE_CONTROLLER = 3;
+
+
+	INITIALIZING = 0
+	ERROR = 1
+	READY_TO_CATCH = 2
+	CATCHING = 3
+	EMERGENCY_STOP = 4
+	MANUAL_MODE = 5
+
+	PID = 1;
+	PID_ADAPTATIVE = 2;
+
+
+	
+	function sendMessage(type, message) {
+		var toSend = {'type':type, 'message':message};
+
+		if(type == UPDATE_CONTROLLER)
+		{
+			if(message == PID)
+			{
+				toSend['KP'] = parseFloat($("#kp_field").val());
+				toSend['KI'] = parseFloat($("#ki_field").val());
+				toSend['KD'] = parseFloat($("#kd_field").val());
+				toSend['KP_PR'] = parseFloat($("#kp_field_PR").val());
+				toSend['KI_PR'] = parseFloat($("#ki_field_PR").val());
+				toSend['KD_PR'] = parseFloat($("#kd_field_PR").val());
+				modal2.style.display = "none";
+			}
+			else if(message == PID_ADAPTATIVE)
+			{
+				toSend['KP'] = parseFloat($("#kp_field_adapt").val());
+				toSend['KI'] = parseFloat($("#ki_field_adapt").val());
+				toSend['KD'] = parseFloat($("#kd_field_adapt").val());
+				toSend['KP_cte'] = parseFloat($("#field_adapt_rate_p").val());
+				toSend['KI_cte'] = parseFloat($("#field_adapt_rate_i").val());
+				toSend['KD_cte'] = parseFloat($("#field_adapt_rate_d").val());
+				toSend['KP_PR'] = parseFloat($("#kp_field_adapt_PR").val());
+				toSend['KI_PR'] = parseFloat($("#ki_field_adapt_PR").val());
+				toSend['KD_PR'] = parseFloat($("#kd_field_adapt_PR").val());
+				toSend['KP_cte_PR'] = parseFloat($("#field_adapt_rate_p_PR").val());
+				toSend['KI_cte_PR'] = parseFloat($("#field_adapt_rate_i_PR").val());
+				toSend['KD_cte_PR'] = parseFloat($("#field_adapt_rate_d_PR").val());
+				modal3.style.display = "none";
+			}
+		}
+
+		mainSocket.send(JSON.stringify(toSend));
+	}
+
+</script>
+
+
+</head>
+<body>
+
+	<div style="background: radial-gradient(#ffffff, #e7e8a2); width: 100%;line-height: 55px;left: 0;top:0;position: fixed;z-index: 1;" id="main">
+
+		<div class="main-nav" style="cursor: pointer;">
+			<img src="{% static 'img/menu.png' %}" style="width: auto;height: 45px;float: left;position: absolute;display: inline;bottom: 14px;left: 16px;">
+			<ul id="ul_hidden">
+				<li><a href="javascript:;" id="ChangeController"><i class="fa" style="font-size: 26px;font-size: 23px;vertical-align: middle;margin-right: 10px;">&#xf362;</i>Change current controller</a></li>
+				<li><a href="javascript:;" id="ControllerConfig"><i class="fa" style="font-size: 26px;font-size: 23px;vertical-align: middle;margin-right: 10px;">&#xf085;</i>Classic PID configuration</a></li>
+				<li><a href="javascript:;" id="ControllerConfig2"><i class="fa" style="font-size: 26px;font-size: 23px;vertical-align: middle;margin-right: 10px;">&#xf085;</i>Adaptative PID configuration</a></li>
+				<!-- <li><a href="javascript:;" ><i class="fa" style="font-size: 26px;font-size: 23px;vertical-align: middle;margin-right: 10px;">&#xf53f;</i>HSV calibration</a></li> -->
+				<li><a href="javascript:;" ><i class="fa" style="font-size: 26px;font-size: 23px;vertical-align: middle;margin-right: 10px;">&#xf05a;</i>Performance of last catch</a></li>
+
+			</ul>
+		</div>
+
+		<script type="text/javascript">
+			$('.main-nav').on('click',function(){
+				event.stopPropagation();
+				$('ul').slideToggle(280);
+			});
+
+			$('#ul_hidden').click(function(event){
+				event.stopPropagation();
+			});
+
+			$(window).click(function() {
+				$("ul").slideUp()
+			});
+			$('li').click(function() {
+				$("ul").slideUp()
+			});
+
+		</script>
+
+		<img src="{% static 'img/logo.png' %}" style="display: block;margin-left: auto;margin-right: auto;width: auto;height: 50px;margin-top: 10px;margin-bottom: 10px">
+
+	</div>
+
+
+
+	<div style="height: calc(100vh - 4% - 130px);width: calc(100vw - 800px - 20px - 5%);background-color: #d4e6e4;display:inline-block;position: relative;margin-top: 90px;padding:2%;margin-left: 1%">
+		<label style="font-weight: 100; font-size: 28px;margin-bottom: 10px;display: inline-block;">Drone Telemetry:</label>
+
+
+
+		<fieldset>
+			<legend>Drone Position</legend>
+
+			<label style="font-weight: 100; font-size: 20px;width: 90px;display: inline-block;">X Axis:</label>
+			<label style="font-weight: 100; font-size: 20px;" id="xDrone"></label><br>
+
+			<label style="font-weight: 100; font-size: 20px;width: 90px;display: inline-block;">Y Axis:</label>
+			<label style="font-weight: 100; font-size: 20px;" id="yDrone"></label><br>
+
+			<label style="font-weight: 100; font-size: 20px;width: 90px;display: inline-block;">Z Axis:</label>
+			<label style="font-weight: 100; font-size: 20px;" id="zDrone"></label><br>
+
+			<label style="font-weight: 100; font-size: 20px;width: 90px;display: inline-block;">Heading:</label>
+			<label style="font-weight: 100; font-size: 20px;" id="hDrone"></label>
+		</fieldset>
+
+
+
+		<fieldset>
+			<legend>Drone Commands</legend>
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 80px;">Pitch:</label>
+			<label style="font-weight: 100; font-size: 20px;" id="dronePitch"></label><br>
+
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 80px;">Roll:</label>
+			<label style="font-weight: 100; font-size: 20px;" id="droneRoll"></label><br>
+
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 80px;">Yaw:</label>
+			<label style="font-weight: 100; font-size: 20px;" id="droneYaw"></label><br>
+
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 80px;">Throttle:</label>
+			<label style="font-weight: 100; font-size: 20px;" id="droneThrottle"></label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Controller Parameters</legend>
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 165px;margin-bottom: 10px">Current Controller:</label>
+			<label style="font-weight: 100; font-size: 20px;" id="currentControllerText"></label><br>
+
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 70px;">K<sub>p</sub> (z):</label>
+			<label style="font-weight: 100; font-size: 20px;" id="Kp"></label>
+
+
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 100px;margin-left: 40px">K<sub>p</sub> (P-R):</label>
+			<label style="font-weight: 100; font-size: 20px;" id="Kp_PR"></label>
+
+			<br>
+
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 70px;">K<sub>i</sub> (z):</label>
+			<label style="font-weight: 100; font-size: 20px;" id="Ki"></label>
+
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 100px;margin-left: 40px">K<sub>i</sub> (P-R):</label>
+			<label style="font-weight: 100; font-size: 20px;" id="Ki_PR"></label>
+
+			<br>
+
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 70px;">K<sub>d</sub> (z):</label>
+			<label style="font-weight: 100; font-size: 20px;" id="Kd"></label>
+
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 100px;margin-left: 40px">K<sub>d</sub> (P-R):</label>
+			<label style="font-weight: 100; font-size: 20px;" id="Kd_PR"></label>
+
+		</fieldset>
+
+		<div style="bottom: 16px;position: absolute;">
+			<label style="font-weight: 100; font-size: 20px;display: inline-block;width: 135px">Battery Status:</label>
+			<label style="font-weight: 100; font-size: 20px;" id="Batt"></label><br>
+		</div>
+
+	</div>
+
+
+
+
+	<div style="display:inline-block;position: relative;float:right;">
+
+		<div id="container" style="height: 500px;width: 785px;margin-right: 20px;"></div>
+
+
+
+		<div style="height: calc(94vh - 500px);width: 90%;background-color: #d4e6e4;position: relative;padding:2%;display: inline-block;margin-left: 3%;display: flex;align-items: center;">
+
+			<div style="width: 50%;text-align: center;">
+				<label style="font-weight: 100; font-size: 25px;margin-bottom: 10px;display: inline-block;">Operating status</label><br>
+				<label id="stateIndicator" style="font-weight: 400; font-size: 24px;display: inline-block;color:#c3823a">Connecting...</label>
+			</div>
+
+			<div style="width: 50%;text-align: center;">
+				<label style="font-weight: 100; font-size: 25px;display: inline-block;margin-top: -10px">Emergency Stop</label><br>
+				<div id="main-circle" onclick="sendMessage(EMERGENCY, 0)">
+					<div id="inner-circle" style="user-select: none;">STOP</div>
+				</div>
+			</div>
+
+			
+		</div>
+
+	</div>
+
+
+	<!-- Modal para configuracion controladores (PID)-->
+
+	<div id="ModalConfig" class="modalConfig">
+
+		<div class="modal-contentConfig" id="contenidoModalConfig">
+
+			<span class="closeConfig">&times;</span>
+
+			<label style="font-family: Helvetica;font-size: 24px;margin-top: 9px;display: inline-block;">Classic PID controller configuration</label>
+
+			<style type="text/css">
+
+				.form-group {
+					display: flex;
+					flex-direction: row;
+				}
+
+				.form-group label {
+					flex: none;
+					display: block;
+					width: 140px;
+					font-size: 1em;
+					margin-bottom: 20px;
+					font-family: Helvetica
+				}
+
+				.form-group input{
+					width: 100%;
+					height: 20px;
+					font-family: Helvetica;
+					font-size: 1em;
+				}
+			</style>
+
+			<div style="margin-top: 40px">
+				<form onsubmit="return false;">
+
+
+
+
+					<div class="form-group" style="margin-top: 25px;">
+						<label style="width: 150px">K<sub>p</sub> constant (z):</label>
+						<input id="kp_field" class="input-control" type="number" step="0.001" style="margin-right: 20px"/>
+
+						<label style="width: 150px">K<sub>p</sub> constant (P-R):</label>
+						<input id="kp_field_PR" class="input-control" type="number" step="0.001"/>
+					</div>
+
+					<div class="form-group">
+						<label style="width: 150px">K<sub>i</sub> constant (z):</label>
+						<input id="ki_field" class="input-control" type="number" step="0.001" style="margin-right: 20px"/>
+
+						<label style="width: 150px">K<sub>i</sub> constant (P-R):</label>
+						<input id="ki_field_PR" class="input-control" type="number" step="0.001"/>
+					</div>
+
+					<div class="form-group">
+						<label style="width: 150px">K<sub>d</sub> constant (z):</label>
+						<input id="kd_field" class="input-control" type="number" step="0.001" style="margin-right: 20px"/>
+
+						<label style="width: 150px">K<sub>d</sub> constant (P-R):</label>
+						<input id="kd_field_PR" class="input-control" type="number" step="0.001"/>
+					</div>
+
+
+
+
+					<button style="" onclick="sendMessage(UPDATE_CONTROLLER, PID)">Update values</button>
+
+
+
+
+				</form>
+
+			</div>
+
+
+		</div>
+
+	</div>
+
+	<!-- Modal para configuracion controladores (Adaptativo) -->
+
+	<div id="ModalConfig2" class="modalConfig">
+
+		<div class="modal-contentConfig" id="contenidoModalConfig2" style="width: 700px;height: 430px">
+
+			<span class="closeConfig">&times;</span>
+
+			<label style="font-family: Helvetica;font-size: 24px;margin-top: 9px;display: inline-block;">Adaptative PID controller configuration</label>
+
+			<div style="margin-top: 40px">
+				<form onsubmit="return false;">
+
+
+					<div class="form-group" style="margin-top: 25px;">
+						<label style="width: 150px">K<sub>p</sub> constant (z):</label>
+						<input id="kp_field_adapt" class="input-control" type="number" step="0.001" style="margin-right: 20px" />
+
+						<label style="width: 150px">K<sub>p</sub> adapt rate (z):</label>
+						<input id="field_adapt_rate_p" class="input-control" type="number" step="0.001"/>
+					</div>
+
+					<div class="form-group">
+						<label style="width: 150px">K<sub>i</sub> constant (z):</label>
+						<input id="ki_field_adapt" class="input-control" type="number" step="0.001" style="margin-right: 20px" />
+
+						<label style="width: 150px">K<sub>i</sub> adapt rate (z):</label>
+						<input id="field_adapt_rate_i" class="input-control" type="number" step="0.001"/>
+					</div>
+
+					<div class="form-group">
+						<label style="width: 150px">K<sub>d</sub> constant (z):</label>
+						<input id="kd_field_adapt" class="input-control" type="number" step="0.001" style="margin-right: 20px" />
+
+						<label style="width: 150px">K<sub>d</sub> adapt rate (z):</label>
+						<input id="field_adapt_rate_d" class="input-control" type="number" step="0.001"/>
+					</div>
+
+
+
+
+					<div class="form-group" style="margin-top: 25px;">
+						<label style="width: 150px">K<sub>p</sub> constant (P-R):</label>
+						<input id="kp_field_adapt_PR" class="input-control" type="number" step="0.001" style="margin-right: 20px" />
+
+						<label style="width: 150px">K<sub>p</sub> adapt rate (P-R):</label>
+						<input id="field_adapt_rate_p_PR" class="input-control" type="number" step="0.001"/>
+					</div>
+
+					<div class="form-group">
+						<label style="width: 150px">K<sub>i</sub> constant (P-R):</label>
+						<input id="ki_field_adapt_PR" class="input-control" type="number" step="0.001" style="margin-right: 20px" />
+
+						<label style="width: 150px">K<sub>i</sub> adapt rate (P-R):</label>
+						<input id="field_adapt_rate_i_PR" class="input-control" type="number" step="0.001"/>
+					</div>
+
+					<div class="form-group">
+						<label style="width: 150px">K<sub>d</sub> constant (P-R):</label>
+						<input id="kd_field_adapt_PR" class="input-control" type="number" step="0.001" style="margin-right: 20px" />
+
+						<label style="width: 150px">K<sub>d</sub> adapt rate (P-R):</label>
+						<input id="field_adapt_rate_d_PR" class="input-control" type="number" step="0.001"/>
+					</div>
+
+
+
+					<button style="" onclick="sendMessage(UPDATE_CONTROLLER, PID_ADAPTATIVE)">Update values</button>
+
+
+
+				</form>
+
+			</div>
+
+
+		</div>
+
+	</div>
+
+
+
+	<!-- Modal para cambiar el PID -->
+
+	<div id="myModal" class="modal">
+
+		<div class="modal-content">
+			<div class="modal-header">
+				<span class="close">&times;</span>
+				<h2 style="font-family: Helvetica">Current selected controller</h2>
+			</div>
+			<div class="modal-body">
+
+
+				<form style="padding: 0 16px;max-width: 550px;margin: 50px auto;font-size: 18px;font-weight: 600;line-height: 36px;">
+
+					<div class="inputGroup">
+						<input checked id="1" name="radio" type="radio" onchange="sendMessage(CHANGE_CONTROLLER, parseInt(this.id))" />
+						<label for="1">Classic PID</label>
+					</div>
+					<div class="inputGroup">
+						<input id="2" name="radio" type="radio" onchange="sendMessage(CHANGE_CONTROLLER, parseInt(this.id))" />
+						<label for="2">Adaptative PID</label>
+					</div>
+				</form>
+
+
+
+
+			</div>
+			<div class="modal-footer">
+				<label style="font-family: Helvetica;font-style: 8px;margin-top: 20px;margin-bottom: 20px;display: inline-block;">Drone position controller</label>
+			</div>
+		</div>
+
+	</div>
+
+
+
+
+	<script type="text/javascript">
+		modal = document.getElementById('myModal');
+		btn = document.getElementById("ChangeController");
+		span = document.getElementsByClassName("close")[0];
+
+		modal2 = document.getElementById('ModalConfig');
+		btn2 = document.getElementById("ControllerConfig");
+		span2 = document.getElementsByClassName("closeConfig")[0];
+
+		modal3 = document.getElementById('ModalConfig2');
+		btn3 = document.getElementById("ControllerConfig2");
+		span3 = document.getElementsByClassName("closeConfig")[1];
+
+		btn.onclick = function() {
+			modal.style.display = "block";
+		}
+		span.onclick = function() {
+			modal.style.display = "none";
+		}
+
+
+		btn2.onclick = function() {
+			modal2.style.display = "block";
+			sendMessage(REQUEST_CONTROLER_DATA, PID);
+
+		}
+		span2.onclick = function() {
+			modal2.style.display = "none";
+		}
+
+		btn3.onclick = function() {
+			modal3.style.display = "block";
+			sendMessage(REQUEST_CONTROLER_DATA, PID_ADAPTATIVE);
+		}
+		span3.onclick = function() {
+			modal3.style.display = "none";
+		}
+
+		window.onclick = function(event) {
+			if (event.target == modal2) {
+				modal2.style.display = "none";
+			}
+			if (event.target == modal) {
+				modal.style.display = "none";
+			}
+			if (event.target == modal3) {
+				modal3.style.display = "none";
+			}
+		}
+	</script>
+
+
+
+
+	<script type="text/javascript">
+
+
+		addr = 'ws://'+$(location).attr('href').replace("http://", "")+'ws/bgUpdate/'
+
+		mainSocket = new WebSocket(addr);
+
+		mainSocket.onmessage = function(e) {
+
+			var data = JSON.parse(e.data);
+
+			if(data['config_req'])
+			{
+				if(data['controller']==PID)
+				{
+					$("#kp_field").val(data['KP'])
+					$("#ki_field").val(data['KI'])
+					$("#kd_field").val(data['KD'])
+					$("#kp_field_PR").val(data['KP_PR'])
+					$("#ki_field_PR").val(data['KI_PR'])
+					$("#kd_field_PR").val(data['KD_PR'])
+
+				}
+				else if(data['controller']==PID_ADAPTATIVE)
+				{
+					$("#kp_field_adapt").val(data['KP'])
+					$("#ki_field_adapt").val(data['KI'])
+					$("#kd_field_adapt").val(data['KD'])
+
+					$("#field_adapt_rate_p").val(data['KP_cte'])
+					$("#field_adapt_rate_i").val(data['KI_cte'])
+					$("#field_adapt_rate_d").val(data['KD_cte'])
+
+					$("#kp_field_adapt_PR").val(data['KP_PR'])
+					$("#ki_field_adapt_PR").val(data['KI_PR'])
+					$("#kd_field_adapt_PR").val(data['KD_PR'])
+
+					$("#field_adapt_rate_p_PR").val(data['KP_cte_PR'])
+					$("#field_adapt_rate_i_PR").val(data['KI_cte_PR'])
+					$("#field_adapt_rate_d_PR").val(data['KD_cte_PR'])
+				}
+			}
+
+			else
+			{
+				var paintDrone = data['paintDrone'];
+				var paintObject = data['paintObject'];
+				var paintIntercept = data['paintIntercept'];
+
+				var x_drone = data['x_drone'];
+				var y_drone = data['y_drone'];
+				var z_drone = data['z_drone'];
+				var h_drone = data['h_drone'];
+
+				var x_object = data['x_object'];
+				var y_object = data['y_object'];
+				var z_object = data['z_object'];
+
+				var x_intercept = data['x_intercept'];
+				var y_intercept = data['y_intercept'];
+				var z_intercept = data['z_intercept'];
+
+				var currentController_JSON = data['currentController'];
+
+				var dronePitch_JSON = data['dronePitch']
+				var droneRoll_JSON = data['droneRoll']
+				var droneYaw_JSON = data['droneYaw']
+				var droneThrottle_JSON = data['droneThrottle']
+				var Kp_JSON = data['Kp']
+				var Ki_JSON = data['Ki']
+				var Kd_JSON = data['Kd']
+				var Kp_PR_JSON = data['Kp_PR']
+				var Ki_PR_JSON = data['Ki_PR']
+				var Kd_PR_JSON = data['Kd_PR']
+				var Batt_JSON = data['Batt']
+
+				var state_JSON = data['state']
+
+
+				if(chart.series[0].data[0]){chart.series[0].data[0].remove(false, false);}
+				if (paintDrone){chart.series[0].addPoint([x_drone,z_drone,y_drone])}
+
+				if(chart.series[1].data[0]){chart.series[1].data[0].remove(false, false);}
+				if(paintObject){chart.series[1].addPoint([x_object,z_object,y_object])}
+
+				if(chart.series[2].data[0]){chart.series[2].data[0].remove(false, false);}
+				if(paintIntercept){chart.series[2].addPoint([x_intercept,z_intercept,y_intercept])}
+
+
+					if(currentController_JSON == 1)
+					{
+						$("#currentControllerText").html("Classic PID");
+						$("#1").prop("checked", true);
+					}
+					else
+					{
+						$("#currentControllerText").html("Adaptative PID");
+						$("#2").prop("checked", true);
+					}
+
+					battColor = '#f58526'
+					greenBatt = '#5abf4e'
+					redBatt = '#bf4e4e'
+					if(Batt_JSON!="Indeterminate")
+					{
+						valorOriginal = Batt_JSON.toFixed(1);
+						Batt_JSON = (100*((valorOriginal-10.2)/2.4)).toFixed(2)+" % ("+valorOriginal+" V)"
+
+						if (100*((valorOriginal-10.2)/2.4) > 60){battColor = greenBatt}
+						if (100*((valorOriginal-10.2)/2.4) < 30){battColor = redBatt}
+
+					}
+
+					if(x_drone!="Indeterminate"){x_drone=x_drone.toFixed(2)+" cm";}
+					if(y_drone!="Indeterminate"){y_drone=y_drone.toFixed(2)+" cm";}
+					if(z_drone!="Indeterminate"){z_drone=z_drone.toFixed(2)+" cm";}
+					if(h_drone!="Indeterminate"){h_drone=(h_drone*180/Math.PI).toFixed(2)+" &deg";}
+
+					if(dronePitch_JSON!="Indeterminate"){dronePitch_JSON=dronePitch_JSON.toFixed(0);}
+					if(droneRoll_JSON!="Indeterminate"){droneRoll_JSON=droneRoll_JSON.toFixed(0);}
+					if(droneYaw_JSON!="Indeterminate"){droneYaw_JSON=droneYaw_JSON.toFixed(0);}
+					if(droneThrottle_JSON!="Indeterminate"){droneThrottle_JSON=droneThrottle_JSON.toFixed(0);}
+					if(Kp_JSON!="Indeterminate"){Kp_JSON=Kp_JSON.toFixed(3);}
+					if(Ki_JSON!="Indeterminate"){Ki_JSON=Ki_JSON.toFixed(3);}
+					if(Kd_JSON!="Indeterminate"){Kd_JSON=Kd_JSON.toFixed(3);}
+					if(Kp_PR_JSON!="Indeterminate"){Kp_PR_JSON=Kp_PR_JSON.toFixed(3);}
+					if(Ki_PR_JSON!="Indeterminate"){Ki_PR_JSON=Ki_PR_JSON.toFixed(3);}
+					if(Kd_PR_JSON!="Indeterminate"){Kd_PR_JSON=Kd_PR_JSON.toFixed(3);}
+
+					$("#xDrone").html(x_drone);
+					$("#yDrone").html(y_drone);
+					$("#zDrone").html(z_drone);
+					$("#hDrone").html(h_drone);
+					$("#dronePitch").html(dronePitch_JSON);
+					$("#droneRoll").html(droneRoll_JSON);
+					$("#droneYaw").html(droneYaw_JSON);
+					$("#droneThrottle").html(droneThrottle_JSON);
+					$("#Kp").html(Kp_JSON);
+					$("#Ki").html(Ki_JSON);
+					$("#Kd").html(Kd_JSON);
+					$("#Kp_PR").html(Kp_PR_JSON);
+					$("#Ki_PR").html(Ki_PR_JSON);
+					$("#Kd_PR").html(Kd_PR_JSON);
+					$("#Batt").html(Batt_JSON);
+					$("#Batt").css({'color':battColor});
+					
+
+
+					if(state_JSON==READY_TO_CATCH || state_JSON==MANUAL_MODE)
+					{
+						$("#stateIndicator").css({color:"#3ac34d"})
+						
+						if(state_JSON==READY_TO_CATCH){$("#stateIndicator").html("Ready to catch")}
+						if(state_JSON==MANUAL_MODE){$("#stateIndicator").html("Manual Mode")}
+					}
+					else if(state_JSON==INITIALIZING || state_JSON==CATCHING)
+					{
+						$("#stateIndicator").css({color:"#c3823a"})
+						if(state_JSON==INITIALIZING){$("#stateIndicator").html("Initializing")}
+						if(state_JSON==CATCHING){$("#stateIndicator").html("Catching")}
+					}
+					else
+					{
+						$("#stateIndicator").css({color:"#c33a3a"})	
+						if(state_JSON==ERROR){$("#stateIndicator").html("Error")}
+						if(state_JSON==EMERGENCY_STOP){$("#stateIndicator").html("Emergency stop")}
+					}
+
+				}
+
+
+
+
+			};
+		</script>
+
+
+	</body>
+
+
+	<script type="text/javascript">
+
+	// Give the points a 3D feel by adding a radial gradient
+	Highcharts.setOptions({
+		colors: Highcharts.getOptions().colors.map(function (color) {
+			return {
+				radialGradient: {
+					cx: 0.4,
+					cy: 0.3,
+					r: 0.5
+				},
+				stops: [
+				[0, color],
+				[1, Highcharts.Color(color).brighten(-0.2).get('rgb')]
+				]
+			};
+		})
+	});
+
+
+// Set up the chart
+var chart = new Highcharts.Chart({
+	chart: {
+		renderTo: 'container',
+		margin: [100,100,120,135],
+		type: 'scatter3d',
+		animation: false,
+		options3d: {
+			enabled: true,
+			alpha: 10,
+			beta: 30,
+			depth: 600,
+			viewDistance: 3,
+			fitToPlot: false,
+			frame: {
+				bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
+				back: { size: 1, color: 'rgba(0,0,0,0.04)' },
+				side: { size: 1, color: 'rgba(0,0,0,0.06)' }
+			}
+		}
+	},
+	plotOptions: {
+		series:{enableMouseTracking: false},
+		scatter: {
+			width: 10,
+			height: 10,
+			depth: 10
+		}
+	},
+	credits: {
+		enabled: false
+	},
+	yAxis: {
+		min: 0,
+		max: 200,
+		title: {
+			text: 'z'
+		},
+	},
+	xAxis: {
+		min: -2000,
+		max: 2000,
+		gridLineWidth: 1,
+		title: {
+			text: 'x'
+		},
+	},
+	zAxis: {
+		min: -2000,
+		max: 2000,
+		showFirstLabel: false,
+		title: {
+			text: 'y'
+		},
+	},
+	legend: {
+		align: 'right',
+		verticalAlign: 'top',
+		layout: 'vertical',
+		x: -20,
+		y: 390
+	},
+	series: [{
+		name: 'Drone',
+		marker: {
+			radius: 14,
+		},
+		colorByPoint: false,
+		data: [
+		[1, 3, 5]]
+	},
+	{
+		name: 'Object',
+		marker: {
+			radius: 10,
+		},
+		colorByPoint: false,
+		data: [
+		[1, 6, 1]]
+	},
+	{
+		name: 'Goal',
+		marker: {
+			radius: 4,
+			symbol: 'triangle-down',
+		},
+		colorByPoint: false,
+		data: [
+		[1, 6, 5]]
+	}]
+});
+
+
+
+
+</script>
+
+
+<script type="text/javascript">
+	
+	$(document).on("keypress", function (e) {
+
+		if(e.which==32)
+		{
+			sendMessage(EMERGENCY, 0)
+		}
+
+	});
+
+</script>
+
+
+
+
+</html>
